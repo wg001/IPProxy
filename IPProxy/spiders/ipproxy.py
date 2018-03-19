@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import scrapy
 from scrapy.conf import settings
+from IPProxy.items import IpproxyItem
 
 
 class IpproxySpider(scrapy.Spider):
@@ -29,11 +30,17 @@ class IpproxySpider(scrapy.Spider):
         get_res = response.xpath('//table[@id="ip_list"]/tr')
         for child in get_res:
             c_res = child.xpath('./td/text()').extract()
-            # for i in range(len(c_res)):
-            #     print(i, ">>>", c_res[i])
             if len(c_res) > 0:
-                ip_arr = c_res[5] + "://" + c_res[0] + ":" + c_res[1]
-                print(ip_arr)
+                item = IpproxyItem()
+                url_pre = ""
+                if c_res[5] in ["HTTPS", "HTTP"]:
+                    url_pre = c_res[5]
+                elif c_res[4] in ["HTTPS", "HTTP"]:
+                    url_pre = c_res[4]
+                ip_str = url_pre + "://" + c_res[0] + ":" + c_res[1]
+                item['ip'] = ip_str
+                yield item
+                # print(ip_str)
             print("-----------------")
 
     def error_handle(self, failure):
